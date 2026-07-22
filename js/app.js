@@ -110,18 +110,22 @@ function render(lista) {
   });
 }
 
-// --- LAB 11 - HU1 & HU2: ASYNC/AWAIT Y BÚSQUEDA REAL EN LA API ---
+// --- LAB 11 - HU1 & HU4: ASYNC/AWAIT Y ADAPTADOR DE POKÉMON ---
 
 // Variable global para guardar los Pokémon cargados
 let pokedex = [];
 
-// Función adaptadora de datos de la API
+// Función adaptadora de datos de la API (HU4: incluye estadísticas)
 function adaptarPokemon(data) {
   return {
     nombre: data.name,
     imagen:
       data.sprites?.front_default ?? "https://via.placeholder.com/96?text=?",
     tipos: data.types.map((t) => t.type.name),
+    stats: (data.stats ?? []).map((s) => ({
+      nombre: s.stat.name,
+      valor: s.base_stat,
+    })),
   };
 }
 
@@ -161,7 +165,7 @@ async function cargarPokedex() {
   }
 }
 
-// --- LAB 11 - HU2 & HU3: BÚSQUEDA EN LA API Y CAPTURA ---
+// --- LAB 11 - HU2, HU3 & HU4: BÚSQUEDA, CAPTURA Y ESTADÍSTICAS ---
 
 // 1. HU2: Traer un Pokémon de la API por su nombre
 async function buscarPokemon(nombre) {
@@ -171,35 +175,48 @@ async function buscarPokemon(nombre) {
 
 // 2. HU3: Función para capturar e integrar el Pokémon a la colección
 function capturar(pokemon) {
-  // Comprobamos con .some() que no esté duplicado en nuestro arreglo global 'pokedex'
   if (!pokedex.some((p) => p.nombre === pokemon.nombre)) {
-    pokedex.push(pokemon); // Hace crecer la colección
+    pokedex.push(pokemon);
   }
 
-  render(pokedex); // Volvemos a mostrar la Pokédex completa con el nuevo integrante
+  render(pokedex);
 
   if (buscador) {
-    buscador.value = ""; // Limpiamos el input
+    buscador.value = "";
   }
 }
 
-// 3. HU3: Mostrar el resultado individual CON el botón 'Capturar'
+// 3. HU3 & HU4: Mostrar resultado individual con Stats y Botón 'Capturar'
 function mostrarResultado(pokemon) {
-  const tarjeta = crearTarjeta(pokemon); // Generamos la tarjeta base
+  const tarjeta = crearTarjeta(pokemon);
 
-  // Creamos el botón de captura
+  // HU4: Bloque de estadísticas
+  const stats = document.createElement("div");
+  stats.className =
+    "mt-3 text-left text-xs space-y-1 bg-slate-50 p-2 rounded-lg border border-slate-100";
+  stats.innerHTML = (pokemon.stats ?? [])
+    .map(
+      (s) => `
+      <div class="flex justify-between">
+        <span class="capitalize text-slate-500">${s.nombre}</span>
+        <span class="font-semibold text-slate-700">${s.valor}</span>
+      </div>
+    `,
+    )
+    .join("");
+
+  tarjeta.appendChild(stats);
+
+  // HU3: Botón de capturar
   const botonCapturar = document.createElement("button");
   botonCapturar.textContent = "⚡ Capturar";
   botonCapturar.className =
-    "mt-2 w-full bg-yellow-400 font-semibold rounded-lg py-1 hover:bg-yellow-500 cursor-pointer transition-colors";
+    "mt-3 w-full bg-yellow-400 font-semibold rounded-lg py-1.5 hover:bg-yellow-500 cursor-pointer transition-colors text-sm";
 
-  // Le asignamos el evento para capturar
   botonCapturar.addEventListener("click", () => capturar(pokemon));
 
-  // Agregamos el botón dentro de la tarjeta
   tarjeta.appendChild(botonCapturar);
 
-  // Renderizamos la tarjeta en el contenedor
   contenedor.innerHTML = "";
   contenedor.appendChild(tarjeta);
 }
