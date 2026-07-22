@@ -90,11 +90,11 @@ function crearTarjeta(pokemon) {
   articulo.className =
     "bg-white rounded-xl shadow p-4 text-center border border-slate-100";
   articulo.innerHTML = `
-        <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
-        <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
-        <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
-        <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
-      `;
+          <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
+          <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
+          <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
+          <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
+        `;
 
   return articulo;
 }
@@ -108,37 +108,45 @@ function render(lista) {
   });
 }
 
-// 4. Ejecutar renderizado inicial (usando el array ampliado del Logro 2)
-//render(pokemonAmpliado);
-
-// 5. Obtener referencia al input y filtrar en vivo
+// 4. Obtener referencia al input (buscador desactivado temporalmente)
 const buscador = document.getElementById("buscador");
 
-buscador?.addEventListener("input", function () {
-  const texto = buscador.value.toLowerCase().trim();
-  const filtrados = pokemonAmpliado.filter((p) =>
-    p.nombre.toLowerCase().includes(texto),
-  );
-  render(filtrados);
-});
+/*
+  buscador?.addEventListener("input", function () {
+    const texto = buscador.value.toLowerCase().trim();
+    const filtrados = pokemonAmpliado.filter((p) =>
+      p.nombre.toLowerCase().includes(texto)
+    );
+    render(filtrados);
+  });
+  */
 
-// --- TRAER UN POKÉMON DE LA API ---
+// --- HU3: ADAPTAR Y MOSTRAR TARJETA REAL ---
 
-// 1. Mostrar estado de carga inicial en la pantalla
+// Función adaptadora: traduce el JSON de la API a nuestro objeto limpio
+function adaptarPokemon(data) {
+  return {
+    nombre: data.name,
+    imagen:
+      data.sprites?.front_default ?? "https://via.placeholder.com/96?text=?",
+    tipos: data.types.map((t) => t.type.name),
+  };
+}
+
+// Mostrar estado de carga inicial en la pantalla
 contenedor.innerHTML = `<p class="col-span-full text-center text-slate-500">Cargando…</p>`;
 
-// 2. Pedir los datos a la PokeAPI
+// Pedir los datos a la PokeAPI
 fetch("https://pokeapi.co/api/v2/pokemon/pikachu")
   .then(function (response) {
-    // 2.1: convierte el texto JSON a un objeto de JavaScript
     return response.json();
   })
   .then(function (data) {
-    // 2.2: recibe el objeto listo de la API
-    console.log("Datos de la API para Pikachu:", data);
+    // Traducimos los datos con el adaptador y renderizamos la tarjeta
+    const pokemonLimpio = adaptarPokemon(data);
+    render([pokemonLimpio]);
   })
   .catch(function (error) {
-    // Se ejecuta si hay un error de red
     console.error(error);
     contenedor.innerHTML = `<p class="col-span-full text-center text-red-600">No se pudo cargar.</p>`;
   });
