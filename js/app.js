@@ -161,18 +161,50 @@ async function cargarPokedex() {
   }
 }
 
-// --- LAB 12 - HU2: BÚSQUEDA DESDE LA API ---
+// --- LAB 11 - HU2 & HU3: BÚSQUEDA EN LA API Y CAPTURA ---
 
+// 1. HU2: Traer un Pokémon de la API por su nombre
 async function buscarPokemon(nombre) {
   const data = await obtenerPokemon(nombre.toLowerCase());
   return adaptarPokemon(data);
 }
 
-function mostrarResultado(pokemon) {
-  contenedor.innerHTML = "";
-  contenedor.appendChild(crearTarjeta(pokemon));
+// 2. HU3: Función para capturar e integrar el Pokémon a la colección
+function capturar(pokemon) {
+  // Comprobamos con .some() que no esté duplicado en nuestro arreglo global 'pokedex'
+  if (!pokedex.some((p) => p.nombre === pokemon.nombre)) {
+    pokedex.push(pokemon); // Hace crecer la colección
+  }
+
+  render(pokedex); // Volvemos a mostrar la Pokédex completa con el nuevo integrante
+
+  if (buscador) {
+    buscador.value = ""; // Limpiamos el input
+  }
 }
 
+// 3. HU3: Mostrar el resultado individual CON el botón 'Capturar'
+function mostrarResultado(pokemon) {
+  const tarjeta = crearTarjeta(pokemon); // Generamos la tarjeta base
+
+  // Creamos el botón de captura
+  const botonCapturar = document.createElement("button");
+  botonCapturar.textContent = "⚡ Capturar";
+  botonCapturar.className =
+    "mt-2 w-full bg-yellow-400 font-semibold rounded-lg py-1 hover:bg-yellow-500 cursor-pointer transition-colors";
+
+  // Le asignamos el evento para capturar
+  botonCapturar.addEventListener("click", () => capturar(pokemon));
+
+  // Agregamos el botón dentro de la tarjeta
+  tarjeta.appendChild(botonCapturar);
+
+  // Renderizamos la tarjeta en el contenedor
+  contenedor.innerHTML = "";
+  contenedor.appendChild(tarjeta);
+}
+
+// 4. HU2: Cargar el spinner de "Buscando..." y procesar el resultado
 async function mostrarBusqueda(nombre) {
   try {
     contenedor.innerHTML = `
@@ -189,13 +221,13 @@ async function mostrarBusqueda(nombre) {
   }
 }
 
-// Escuchar clic en el botón de búsqueda
+// 5. Escuchar clic en el botón de búsqueda
 boton?.addEventListener("click", function () {
   const nombre = buscador.value.trim();
   if (nombre !== "") mostrarBusqueda(nombre);
 });
 
-// Escuchar tecla Enter en el input de búsqueda
+// 6. Escuchar tecla Enter en el input de búsqueda
 buscador?.addEventListener("keydown", function (event) {
   if (event.key === "Enter") boton?.click();
 });
