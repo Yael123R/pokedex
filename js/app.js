@@ -90,11 +90,11 @@ function crearTarjeta(pokemon) {
   articulo.className =
     "bg-white rounded-xl shadow p-4 text-center border border-slate-100";
   articulo.innerHTML = `
-            <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
-            <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
-            <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
-            <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
-          `;
+              <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
+              <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
+              <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
+              <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
+            `;
 
   return articulo;
 }
@@ -111,12 +111,12 @@ function render(lista) {
 // 4. Obtener referencia al input
 const buscador = document.getElementById("buscador");
 
-// --- HU4 + LOGRO 1: REJILLA CON VARIOS POKÉMON EN PARALELO, BUSCADOR Y SPINNER ---
+// --- LAB 11 - HU1: REFORMULAR CARGA CON ASYNC/AWAIT ---
 
 // Variable global para guardar los Pokémon cargados
 let pokedex = [];
 
-// 1. Reactivamos el buscador filtrando sobre 'pokedex'
+// 1. Buscador en vivo
 buscador?.addEventListener("input", function () {
   const texto = buscador.value.toLowerCase().trim();
   const filtrados = pokedex.filter((p) =>
@@ -125,7 +125,7 @@ buscador?.addEventListener("input", function () {
   render(filtrados);
 });
 
-// 2. Función adaptadora (HU3)
+// 2. Función adaptadora
 function adaptarPokemon(data) {
   return {
     nombre: data.name,
@@ -135,38 +135,45 @@ function adaptarPokemon(data) {
   };
 }
 
-// 3. Lista de Pokémon que queremos traer
-const nombres = [
-  "bulbasaur",
-  "charmander",
-  "squirtle",
-  "pikachu",
-  "jigglypuff",
-  "gengar",
-];
-
-// 4. LOGRO 1: Estado de carga con Spinner Animado de Tailwind
-contenedor.innerHTML = `
-    <div class="col-span-full flex flex-col items-center justify-center py-12 gap-3">
-      <div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
-      <p class="text-sm text-slate-500 font-medium">Cargando Pokédex…</p>
-    </div>
-  `;
-
-// 5. Crear el arreglo de promesas
-const promesas = nombres.map(function (nombre) {
-  return fetch(`https://pokeapi.co/api/v2/pokemon/${nombre}`).then((r) =>
-    r.json(),
+// 3. Obtener un Pokémon individual con async/await
+async function obtenerPokemon(idONombre) {
+  const response = await fetch(
+    `https://pokeapi.co/api/v2/pokemon/${idONombre}`,
   );
-});
+  return response.json();
+}
 
-// 6. Ejecutar todas las peticiones en paralelo
-Promise.all(promesas)
-  .then(function (datos) {
+// 4. Cargar la rejilla inicial en paralelo con await Promise.all
+async function cargarPokedex() {
+  const nombres = [
+    "bulbasaur",
+    "charmander",
+    "squirtle",
+    "pikachu",
+    "jigglypuff",
+    "gengar",
+  ];
+
+  // Mostrar Spinner Animado
+  contenedor.innerHTML = `
+      <div class="col-span-full flex flex-col items-center justify-center py-12 gap-3">
+        <div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+        <p class="text-sm text-slate-500 font-medium">Cargando Pokédex…</p>
+      </div>
+    `;
+
+  try {
+    // Pedimos los datos en paralelo y esperamos a que todos resuelvan con await
+    const datos = await Promise.all(nombres.map(obtenerPokemon));
+
+    // Adaptamos y renderizamos los datos
     pokedex = datos.map(adaptarPokemon);
     render(pokedex);
-  })
-  .catch(function (error) {
+  } catch (error) {
     console.error(error);
     contenedor.innerHTML = `<p class="col-span-full text-center text-red-600">No se pudo cargar la Pokédex.</p>`;
-  });
+  }
+}
+
+// Ejecutamos la carga inicial
+cargarPokedex();
