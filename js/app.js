@@ -134,11 +134,16 @@ function adaptarPokemon(data) {
   };
 }
 
-// LOGRO 1: Obtener Pokémon por ID o por Nombre
+// LAB 12 - HU2: Validar respuesta HTTP y lanzar error propio con throw
 async function obtenerPokemon(idONombre) {
   const response = await fetch(
     `https://pokeapi.co/api/v2/pokemon/${idONombre}`,
   );
+
+  if (!response.ok) {
+    throw new Error(`No se encontró "${idONombre}"`);
+  }
+
   return response.json();
 }
 
@@ -169,7 +174,7 @@ async function cargarPokedex() {
   }
 }
 
-// --- LAB 11/12 - BÚSQUEDA Y ERRORES (HU1 LAB 12) ---
+// --- LAB 11/12 - BÚSQUEDA Y ERRORES ---
 
 async function buscarPokemon(consulta) {
   const param = isNaN(consulta) ? consulta.toLowerCase() : consulta;
@@ -226,7 +231,7 @@ function mostrarResultado(pokemon) {
   contenedor.appendChild(tarjeta);
 }
 
-// --- LAB 12 - HU1: MOSTRAR BÚSQUEDA CON TRY/CATCH Y MENSAJE DE ERROR ---
+// LAB 12 - HU1 & HU2: Mostrar búsqueda y manejo de mensajes con error.message
 async function mostrarBusqueda(consulta) {
   // Limpia cualquier mensaje de error previo
   mensaje?.classList.add("hidden");
@@ -236,9 +241,9 @@ async function mostrarBusqueda(consulta) {
     mostrarResultado(pokemon);
   } catch (error) {
     console.error("Error capturado:", error);
-    // En caso de fallar la red o consulta, muestra el error sin romper la app
     if (mensaje) {
-      mensaje.textContent = "Algo salió mal. Revisa tu conexión.";
+      // Muestra el mensaje específico definido por el throw
+      mensaje.textContent = error.message;
       mensaje.classList.remove("hidden");
     }
   }
