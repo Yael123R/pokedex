@@ -122,11 +122,23 @@ buscador?.addEventListener("input", function () {
   render(filtrados);
 });
 
-// --- EXPERIMENTO DE ASINCRONÍA (HU1) ---
-console.log("1. pido los datos…");
+// --- TRAER UN POKÉMON DE LA API ---
 
-fetch("https://pokeapi.co/api/v2/pokemon/pikachu").then(function (response) {
-  console.log("3. ¡los datos llegaron! (al final)");
-});
+// 1. Mostrar estado de carga inicial en la pantalla
+contenedor.innerHTML = `<p class="col-span-full text-center text-slate-500">Cargando…</p>`;
 
-console.log("2. sigo trabajando sin esperar");
+// 2. Pedir los datos a la PokeAPI
+fetch("https://pokeapi.co/api/v2/pokemon/pikachu")
+  .then(function (response) {
+    // 2.1: convierte el texto JSON a un objeto de JavaScript
+    return response.json();
+  })
+  .then(function (data) {
+    // 2.2: recibe el objeto listo de la API
+    console.log("Datos de la API para Pikachu:", data);
+  })
+  .catch(function (error) {
+    // Se ejecuta si hay un error de red
+    console.error(error);
+    contenedor.innerHTML = `<p class="col-span-full text-center text-red-600">No se pudo cargar.</p>`;
+  });
