@@ -67,6 +67,7 @@ const coloresTipo = {
 const contenedor = document.getElementById("resultado");
 const buscador = document.getElementById("buscador");
 const boton = document.getElementById("btn-buscar");
+const btnCargarMas = document.getElementById("cargar-mas");
 
 // 2. Función para fabricar la tarjeta en el DOM
 function crearTarjeta(pokemon) {
@@ -248,6 +249,38 @@ boton?.addEventListener("click", function () {
 buscador?.addEventListener("keydown", function (event) {
   if (event.key === "Enter") boton?.click();
 });
+
+// --- LAB 11 - HU5: CARGAR MÁS CON PARÁMETROS DE CONSULTA ---
+
+let offset = 0;
+
+async function cargarMas() {
+  try {
+    const respuesta = await fetch(
+      `https://pokeapi.co/api/v2/pokemon?limit=12&offset=${offset}`,
+    );
+    const lista = await respuesta.json();
+
+    const datos = await Promise.all(
+      lista.results.map((item) => fetch(item.url).then((r) => r.json())),
+    );
+
+    datos.map(adaptarPokemon).forEach(function (pokemon) {
+      if (!pokedex.some((p) => p.nombre === pokemon.nombre)) {
+        pokedex.push(pokemon);
+      }
+    });
+
+    offset += 12;
+
+    render(pokedex);
+  } catch (error) {
+    console.error("Error al cargar más Pokémon:", error);
+  }
+}
+
+// Escuchamos el clic en el botón 'Cargar más'
+btnCargarMas?.addEventListener("click", cargarMas);
 
 // Ejecutamos la carga inicial al abrir
 cargarPokedex();
