@@ -121,9 +121,21 @@ const buscador = document.getElementById("buscador");
   });
   */
 
-// --- HU3: ADAPTAR Y MOSTRAR TARJETA REAL ---
+// --- HU4: REJILLA CON VARIOS POKÉMON EN PARALELO Y BUSCADOR ---
 
-// Función adaptadora: traduce el JSON de la API a nuestro objeto limpio
+// Variable global para guardar los Pokémon cargados
+let pokedex = [];
+
+// 1. Reactivamos el buscador filtrando sobre 'pokedex'
+buscador?.addEventListener("input", function () {
+  const texto = buscador.value.toLowerCase().trim();
+  const filtrados = pokedex.filter((p) =>
+    p.nombre.toLowerCase().includes(texto),
+  );
+  render(filtrados);
+});
+
+// 2. Función adaptadora (HU3)
 function adaptarPokemon(data) {
   return {
     nombre: data.name,
@@ -133,20 +145,35 @@ function adaptarPokemon(data) {
   };
 }
 
-// Mostrar estado de carga inicial en la pantalla
+// 3. Lista de Pokémon que queremos traer
+const nombres = [
+  "bulbasaur",
+  "charmander",
+  "squirtle",
+  "pikachu",
+  "jigglypuff",
+  "gengar",
+];
+
+// Estado de carga inicial
 contenedor.innerHTML = `<p class="col-span-full text-center text-slate-500">Cargando…</p>`;
 
-// Pedir los datos a la PokeAPI
-fetch("https://pokeapi.co/api/v2/pokemon/pikachu")
-  .then(function (response) {
-    return response.json();
-  })
-  .then(function (data) {
-    // Traducimos los datos con el adaptador y renderizamos la tarjeta
-    const pokemonLimpio = adaptarPokemon(data);
-    render([pokemonLimpio]);
+const promesas = nombres.map(function (nombre) {
+  return fetch(`https://pokeapi.co/api/v2/pokemon/${nombre}`).then((r) =>
+    r.json(),
+  );
+});
+
+// Ejecutar todas las peticiones en paralelo
+Promise.all(promesas)
+  .then(function (datos) {
+    // Traducimos los 6 objetos crudos usando nuestra función adaptadora
+    pokedex = datos.map(adaptarPokemon);
+
+    // Renderizamos la Pokédex completa
+    render(pokedex);
   })
   .catch(function (error) {
     console.error(error);
-    contenedor.innerHTML = `<p class="col-span-full text-center text-red-600">No se pudo cargar.</p>`;
+    contenedor.innerHTML = `<p class="col-span-full text-center text-red-600">No se pudo cargar la Pokédex.</p>`;
   });
