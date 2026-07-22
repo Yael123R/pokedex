@@ -57,8 +57,9 @@ const contenedor = document.getElementById("resultado");
 const buscador = document.getElementById("buscador");
 const boton = document.getElementById("btn-buscar");
 const btnCargarMas = document.getElementById("cargar-mas");
-// LAB 12: Referencia para el contenedor de mensajes de error
 const mensaje = document.getElementById("mensaje");
+// LAB 12 - HU3: Referencia al spinner de carga
+const spinner = document.getElementById("spinner");
 
 // --- LOGRO 2: ELIMINAR UN POKÉMON DE LA POKÉDEX ---
 function eliminarPokemon(nombre) {
@@ -117,7 +118,7 @@ function render(lista) {
   });
 }
 
-// --- LAB 11 - HU1 & HU4: ASYNC/AWAIT Y ADAPTADOR DE POKÉMON ---
+// --- LAB 11/12 - ASYNC/AWAIT Y ADAPTADOR DE POKÉMON ---
 
 let pokedex = [];
 
@@ -147,7 +148,11 @@ async function obtenerPokemon(idONombre) {
   return response.json();
 }
 
+// LAB 12 - HU3: Carga inicial con estado de carga mediante spinner y finally
 async function cargarPokedex() {
+  if (spinner) spinner.classList.remove("hidden");
+  if (mensaje) mensaje.classList.add("hidden");
+
   const nombres = [
     "bulbasaur",
     "charmander",
@@ -157,20 +162,18 @@ async function cargarPokedex() {
     "gengar",
   ];
 
-  contenedor.innerHTML = `
-      <div class="col-span-full flex flex-col items-center justify-center py-12 gap-3">
-        <div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
-        <p class="text-sm text-slate-500 font-medium">Cargando Pokédex…</p>
-      </div>
-    `;
-
   try {
     const datos = await Promise.all(nombres.map(obtenerPokemon));
     pokedex = datos.map(adaptarPokemon);
     render(pokedex);
   } catch (error) {
-    console.error(error);
-    contenedor.innerHTML = `<p class="col-span-full text-center text-red-600">No se pudo cargar la Pokédex.</p>`;
+    console.error("Error al cargar Pokédex inicial:", error);
+    if (mensaje) {
+      mensaje.textContent = "No se pudo cargar la Pokédex.";
+      mensaje.classList.remove("hidden");
+    }
+  } finally {
+    if (spinner) spinner.classList.add("hidden");
   }
 }
 
@@ -231,10 +234,10 @@ function mostrarResultado(pokemon) {
   contenedor.appendChild(tarjeta);
 }
 
-// LAB 12 - HU1 & HU2: Mostrar búsqueda y manejo de mensajes con error.message
+// LAB 12 - HU3: Búsqueda con spinner y ocultado garantizado en el bloque finally
 async function mostrarBusqueda(consulta) {
-  // Limpia cualquier mensaje de error previo
-  mensaje?.classList.add("hidden");
+  if (spinner) spinner.classList.remove("hidden");
+  if (mensaje) mensaje.classList.add("hidden");
 
   try {
     const pokemon = await buscarPokemon(consulta);
@@ -242,10 +245,11 @@ async function mostrarBusqueda(consulta) {
   } catch (error) {
     console.error("Error capturado:", error);
     if (mensaje) {
-      // Muestra el mensaje específico definido por el throw
       mensaje.textContent = error.message;
       mensaje.classList.remove("hidden");
     }
+  } finally {
+    if (spinner) spinner.classList.add("hidden");
   }
 }
 
