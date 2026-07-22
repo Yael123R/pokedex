@@ -39,18 +39,7 @@ const pokemonLocal = [
 ];
 */
 
-// LOGRO 2: Inmutabilidad con Spread Operator
-/*
-const nuevoPokemon = {
-  nombre: "mewtwo",
-  imagen:
-    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png",
-  tipos: ["psychic"],
-};
-const pokemonAmpliado = [...pokemonLocal, nuevoPokemon];
-*/
-
-// LOGRO 1: Diccionario de colores por tipo
+// Diccionario de colores por tipo
 const coloresTipo = {
   grass: "bg-emerald-100 text-emerald-800",
   poison: "bg-purple-100 text-purple-800",
@@ -69,18 +58,18 @@ const buscador = document.getElementById("buscador");
 const boton = document.getElementById("btn-buscar");
 const btnCargarMas = document.getElementById("cargar-mas");
 
+// --- LOGRO 2: ELIMINAR UN POKÉMON DE LA POKÉDEX ---
+function eliminarPokemon(nombre) {
+  pokedex = pokedex.filter((p) => p.nombre !== nombre);
+  render(pokedex);
+}
+
 // 2. Función para fabricar la tarjeta en el DOM
 function crearTarjeta(pokemon) {
-  // Destructuring de propiedades
   const { nombre, imagen, tipos = [] } = pokemon;
-
-  // Destructuring de Array para el tipo principal
   const [principal = "normal"] = tipos;
-
-  // Acceso seguro con ?? para la imagen de respaldo
   const img = imagen ?? "https://via.placeholder.com/96?text=?";
 
-  // Badges con colores dinámicos
   const badges = tipos
     .map((tipo) => {
       const color = coloresTipo[tipo] ?? "bg-slate-200 text-slate-700";
@@ -88,16 +77,31 @@ function crearTarjeta(pokemon) {
     })
     .join("");
 
-  // Crear nodo y armar plantilla HTML
   const articulo = document.createElement("article");
   articulo.className =
-    "bg-white rounded-xl shadow p-4 text-center border border-slate-100";
+    "bg-white rounded-xl shadow p-4 text-center border border-slate-100 relative group";
+
   articulo.innerHTML = `
+      <!-- LOGRO 2: Botón para quitar de la Pokédex -->
+      <button 
+        class="btn-quitar absolute top-2 right-2 text-slate-300 hover:text-red-500 font-bold p-1 rounded-full transition-colors cursor-pointer text-xs" 
+        title="Quitar de Pokédex"
+      >
+        ✕
+      </button>
+
       <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
       <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
       <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
       <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
     `;
+
+  // Listener para el botón de eliminar del Logro 2
+  const btnQuitar = articulo.querySelector(".btn-quitar");
+  btnQuitar?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    eliminarPokemon(nombre);
+  });
 
   return articulo;
 }
@@ -113,10 +117,8 @@ function render(lista) {
 
 // --- LAB 11 - HU1 & HU4: ASYNC/AWAIT Y ADAPTADOR DE POKÉMON ---
 
-// Variable global para guardar los Pokémon cargados
 let pokedex = [];
 
-// Función adaptadora de datos de la API (HU4: incluye estadísticas)
 function adaptarPokemon(data) {
   return {
     nombre: data.name,
@@ -130,7 +132,7 @@ function adaptarPokemon(data) {
   };
 }
 
-// Obtener un Pokémon individual con async/await
+// LOGRO 1: Obtener Pokémon por ID o por Nombre
 async function obtenerPokemon(idONombre) {
   const response = await fetch(
     `https://pokeapi.co/api/v2/pokemon/${idONombre}`,
@@ -138,7 +140,6 @@ async function obtenerPokemon(idONombre) {
   return response.json();
 }
 
-// Cargar la rejilla inicial en paralelo con await Promise.all
 async function cargarPokedex() {
   const nombres = [
     "bulbasaur",
@@ -166,15 +167,15 @@ async function cargarPokedex() {
   }
 }
 
-// --- LAB 11 - HU2, HU3 & HU4: BÚSQUEDA, CAPTURA Y ESTADÍSTICAS ---
+// --- LAB 11 - HU2, HU3 & HU4 + LOGRO 1: BÚSQUEDA POR NOMBRE/ID Y CAPTURA ---
 
-// 1. HU2: Traer un Pokémon de la API por su nombre
-async function buscarPokemon(nombre) {
-  const data = await obtenerPokemon(nombre.toLowerCase());
+// LOGRO 1: Búsqueda flexible por nombre o por ID
+async function buscarPokemon(consulta) {
+  const param = isNaN(consulta) ? consulta.toLowerCase() : consulta;
+  const data = await obtenerPokemon(param);
   return adaptarPokemon(data);
 }
 
-// 2. HU3: Función para capturar e integrar el Pokémon a la colección
 function capturar(pokemon) {
   if (!pokedex.some((p) => p.nombre === pokemon.nombre)) {
     pokedex.push(pokemon);
@@ -187,9 +188,11 @@ function capturar(pokemon) {
   }
 }
 
-// 3. HU3 & HU4: Mostrar resultado individual con Stats y Botón 'Capturar'
 function mostrarResultado(pokemon) {
   const tarjeta = crearTarjeta(pokemon);
+
+  const btnQuitar = tarjeta.querySelector(".btn-quitar");
+  if (btnQuitar) btnQuitar.remove();
 
   // HU4: Bloque de estadísticas
   const stats = document.createElement("div");
@@ -212,7 +215,7 @@ function mostrarResultado(pokemon) {
   const botonCapturar = document.createElement("button");
   botonCapturar.textContent = "⚡ Capturar";
   botonCapturar.className =
-    "mt-3 w-full bg-yellow-400 font-semibold rounded-lg py-1.5 hover:bg-yellow-500 cursor-pointer transition-colors text-sm";
+    "mt-3 w-full bg-yellow-400 font-semibold rounded-lg py-1.5 hover:bg-yellow-500 cursor-pointer transition-colors text-sm font-medium";
 
   botonCapturar.addEventListener("click", () => capturar(pokemon));
 
@@ -222,35 +225,32 @@ function mostrarResultado(pokemon) {
   contenedor.appendChild(tarjeta);
 }
 
-// 4. HU2: Cargar el spinner de "Buscando..." y procesar el resultado
-async function mostrarBusqueda(nombre) {
+async function mostrarBusqueda(consulta) {
   try {
     contenedor.innerHTML = `
         <div class="col-span-full flex flex-col items-center justify-center py-12 gap-3">
           <div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
-          <p class="text-sm text-slate-500 font-medium">Buscando a "${nombre}"…</p>
+          <p class="text-sm text-slate-500 font-medium">Buscando "${consulta}"…</p>
         </div>
       `;
-    const pokemon = await buscarPokemon(nombre);
+    const pokemon = await buscarPokemon(consulta);
     mostrarResultado(pokemon);
   } catch (error) {
     console.error(error);
-    contenedor.innerHTML = `<p class="col-span-full text-center text-red-600 py-8">No se encontró el Pokémon "${nombre}".</p>`;
+    contenedor.innerHTML = `<p class="col-span-full text-center text-red-600 py-8">No se encontró el Pokémon "${consulta}".</p>`;
   }
 }
 
-// 5. Escuchar clic en el botón de búsqueda
 boton?.addEventListener("click", function () {
-  const nombre = buscador.value.trim();
-  if (nombre !== "") mostrarBusqueda(nombre);
+  const consulta = buscador.value.trim();
+  if (consulta !== "") mostrarBusqueda(consulta);
 });
 
-// 6. Escuchar tecla Enter en el input de búsqueda
 buscador?.addEventListener("keydown", function (event) {
   if (event.key === "Enter") boton?.click();
 });
 
-// --- LAB 11 - HU5: CARGAR MÁS CON PARÁMETROS DE CONSULTA ---
+// --- LAB 11 - HU5: CARGAR MÁS CON PARÁMETROS DE CONSULTA (?limit & ?offset) ---
 
 let offset = 0;
 
@@ -272,14 +272,12 @@ async function cargarMas() {
     });
 
     offset += 12;
-
     render(pokedex);
   } catch (error) {
     console.error("Error al cargar más Pokémon:", error);
   }
 }
 
-// Escuchamos el clic en el botón 'Cargar más'
 btnCargarMas?.addEventListener("click", cargarMas);
 
 // Ejecutamos la carga inicial al abrir
