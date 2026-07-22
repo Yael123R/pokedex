@@ -81,3 +81,15 @@ function render(lista) {
 
 // 4. Ejecutar renderizado
 render(pokemonLocal);
+
+// 5. Obtener referencia al input
+const buscador = document.getElementById("buscador");
+
+buscador.addEventListener("input", function () {
+  const texto = buscador.value.toLowerCase().trim();
+  
+  const filtrados = pokemonLocal.filter(p => p.nombre.toLowerCase().includes(texto));
+  
+  // Re-renderizar la UI con la lista filtrada
+  render(filtrados);
+});
