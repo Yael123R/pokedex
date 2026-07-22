@@ -42,12 +42,31 @@ const contenedor = document.getElementById("resultado");
 
 // 2. Función para fabricar la tarjeta en el DOM
 function crearTarjeta(pokemon) {
+  // 2.1. Destructuring de propiedades
+  const { nombre, imagen, tipos } = pokemon;
+
+  // 2.2. Acceso seguro con ?? para la imagen de respaldo
+  const img = imagen ?? "https://via.placeholder.com/96?text=?";
+
+  // 2.3. Convertir el array de tipos en badges HTML
+  const badges = tipos
+    ? tipos
+        .map(
+          (tipo) =>
+            `<span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded-full">${tipo}</span>`,
+        )
+        .join("")
+    : "";
+
+  // 2.4. Crear nodo y armar plantilla HTML
   const articulo = document.createElement("article");
   articulo.className = "bg-white rounded-xl shadow p-4 text-center";
   articulo.innerHTML = `
-      <img src="${pokemon.imagen}" alt="${pokemon.nombre}" class="w-24 h-24 mx-auto">
-      <h2 class="capitalize font-bold text-slate-800 mt-2">${pokemon.nombre}</h2>
+      <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
+      <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
+      <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
     `;
+
   return articulo;
 }
 
