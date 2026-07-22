@@ -25,14 +25,26 @@
       </button>
     </div>
 
-    <!-- ⚙️ SETUP LAB 12: Zonas de Estado -->
-    <div id="spinner" class="hidden text-center text-slate-500 my-4">
-      Cargando...
-    </div>
+    <!-- ⚙️ ZONAS DE ESTADO: Spinner Animado y Mensaje con Reintentar -->
     <div
-      id="mensaje"
-      class="hidden text-center text-red-600 font-medium my-4"
-    ></div>
+      id="spinner"
+      class="hidden flex flex-col items-center justify-center my-6 gap-2"
+    >
+      <div
+        class="w-8 h-8 border-4 border-slate-200 border-t-yellow-400 rounded-full animate-spin"
+      ></div>
+      <p class="text-xs font-medium text-slate-500">Cargando...</p>
+    </div>
+
+    <div id="mensaje" class="hidden text-center my-4 space-y-2">
+      <p id="mensaje-texto" class="text-red-600 font-medium"></p>
+      <button
+        id="btn-reintentar"
+        class="hidden px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+      >
+        🔄 Reintentar
+      </button>
+    </div>
 
     <!-- Rejilla de Resultados -->
     <div

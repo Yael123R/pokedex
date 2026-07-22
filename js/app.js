@@ -57,9 +57,15 @@ const contenedor = document.getElementById("resultado");
 const buscador = document.getElementById("buscador");
 const boton = document.getElementById("btn-buscar");
 const btnCargarMas = document.getElementById("cargar-mas");
-const mensaje = document.getElementById("mensaje");
-// LAB 12 - HU3: Referencia al spinner de carga
 const spinner = document.getElementById("spinner");
+
+// Zonas de Mensaje y Reintento (Logro 1)
+const mensaje = document.getElementById("mensaje");
+const mensajeTexto = document.getElementById("mensaje-texto");
+const btnReintentar = document.getElementById("btn-reintentar");
+
+// Variable global para guardar el término de la última búsqueda (Logro 1)
+let ultimaConsulta = "";
 
 // --- LOGRO 2: ELIMINAR UN POKÉMON DE LA POKÉDEX ---
 function eliminarPokemon(nombre) {
@@ -93,7 +99,12 @@ function crearTarjeta(pokemon) {
         ✕
       </button>
 
-      <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
+      <img 
+        src="${img}" 
+        alt="${nombre}" 
+        class="w-24 h-24 mx-auto"
+        onerror="this.onerror=null; this.src='https://via.placeholder.com/96?text=?';"
+      >
       <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
       <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
       <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
@@ -148,10 +159,16 @@ async function obtenerPokemon(idONombre) {
   return response.json();
 }
 
-// LAB 12 - HU3: Carga inicial con estado de carga mediante spinner y finally
+// Oculta mensajes de error previos
+function limpiarErrores() {
+  if (mensaje) mensaje.classList.add("hidden");
+  if (btnReintentar) btnReintentar.classList.add("hidden");
+}
+
+// LAB 12 - HU3: Carga inicial con spinner y finally
 async function cargarPokedex() {
   if (spinner) spinner.classList.remove("hidden");
-  if (mensaje) mensaje.classList.add("hidden");
+  limpiarErrores();
 
   const nombres = [
     "bulbasaur",
@@ -168,10 +185,9 @@ async function cargarPokedex() {
     render(pokedex);
   } catch (error) {
     console.error("Error al cargar Pokédex inicial:", error);
-    if (mensaje) {
-      mensaje.textContent = "No se pudo cargar la Pokédex.";
-      mensaje.classList.remove("hidden");
-    }
+    if (mensajeTexto)
+      mensajeTexto.textContent = "No se pudo cargar la Pokédex.";
+    if (mensaje) mensaje.classList.remove("hidden");
   } finally {
     if (spinner) spinner.classList.add("hidden");
   }
@@ -234,25 +250,32 @@ function mostrarResultado(pokemon) {
   contenedor.appendChild(tarjeta);
 }
 
-// LAB 12 - HU3: Búsqueda con spinner y ocultado garantizado en el bloque finally
+// LAB 12 - HU3 & LOGRO 1: Búsqueda con spinner, finally y Reintentar
 async function mostrarBusqueda(consulta) {
+  ultimaConsulta = consulta; // Guardamos la búsqueda para el botón Reintentar
   if (spinner) spinner.classList.remove("hidden");
-  if (mensaje) mensaje.classList.add("hidden");
+  limpiarErrores();
 
   try {
     const pokemon = await buscarPokemon(consulta);
     mostrarResultado(pokemon);
   } catch (error) {
     console.error("Error capturado:", error);
-    if (mensaje) {
+
+    if (mensajeTexto) {
+      mensajeTexto.textContent = error.message;
+    } else if (mensaje) {
       mensaje.textContent = error.message;
-      mensaje.classList.remove("hidden");
     }
+
+    if (mensaje) mensaje.classList.remove("hidden");
+    if (btnReintentar) btnReintentar.classList.remove("hidden"); // Muestra botón Reintentar
   } finally {
     if (spinner) spinner.classList.add("hidden");
   }
 }
 
+// Event Listeners
 boton?.addEventListener("click", function () {
   const consulta = buscador.value.trim();
   if (consulta !== "") mostrarBusqueda(consulta);
@@ -260,6 +283,12 @@ boton?.addEventListener("click", function () {
 
 buscador?.addEventListener("keydown", function (event) {
   if (event.key === "Enter") boton?.click();
+});
+
+btnReintentar?.addEventListener("click", function () {
+  if (ultimaConsulta) {
+    mostrarBusqueda(ultimaConsulta);
+  }
 });
 
 // --- LAB 11 - HU5: CARGAR MÁS CON PARÁMETROS DE CONSULTA ---
