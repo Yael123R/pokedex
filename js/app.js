@@ -57,6 +57,8 @@ const contenedor = document.getElementById("resultado");
 const buscador = document.getElementById("buscador");
 const boton = document.getElementById("btn-buscar");
 const btnCargarMas = document.getElementById("cargar-mas");
+// LAB 12: Referencia para el contenedor de mensajes de error
+const mensaje = document.getElementById("mensaje");
 
 // --- LOGRO 2: ELIMINAR UN POKÉMON DE LA POKÉDEX ---
 function eliminarPokemon(nombre) {
@@ -167,9 +169,8 @@ async function cargarPokedex() {
   }
 }
 
-// --- LAB 11 - HU2, HU3 & HU4 + LOGRO 1: BÚSQUEDA POR NOMBRE/ID Y CAPTURA ---
+// --- LAB 11/12 - BÚSQUEDA Y ERRORES (HU1 LAB 12) ---
 
-// LOGRO 1: Búsqueda flexible por nombre o por ID
 async function buscarPokemon(consulta) {
   const param = isNaN(consulta) ? consulta.toLowerCase() : consulta;
   const data = await obtenerPokemon(param);
@@ -225,19 +226,21 @@ function mostrarResultado(pokemon) {
   contenedor.appendChild(tarjeta);
 }
 
+// --- LAB 12 - HU1: MOSTRAR BÚSQUEDA CON TRY/CATCH Y MENSAJE DE ERROR ---
 async function mostrarBusqueda(consulta) {
+  // Limpia cualquier mensaje de error previo
+  mensaje?.classList.add("hidden");
+
   try {
-    contenedor.innerHTML = `
-        <div class="col-span-full flex flex-col items-center justify-center py-12 gap-3">
-          <div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
-          <p class="text-sm text-slate-500 font-medium">Buscando "${consulta}"…</p>
-        </div>
-      `;
     const pokemon = await buscarPokemon(consulta);
     mostrarResultado(pokemon);
   } catch (error) {
-    console.error(error);
-    contenedor.innerHTML = `<p class="col-span-full text-center text-red-600 py-8">No se encontró el Pokémon "${consulta}".</p>`;
+    console.error("Error capturado:", error);
+    // En caso de fallar la red o consulta, muestra el error sin romper la app
+    if (mensaje) {
+      mensaje.textContent = "Algo salió mal. Revisa tu conexión.";
+      mensaje.classList.remove("hidden");
+    }
   }
 }
 
@@ -250,7 +253,7 @@ buscador?.addEventListener("keydown", function (event) {
   if (event.key === "Enter") boton?.click();
 });
 
-// --- LAB 11 - HU5: CARGAR MÁS CON PARÁMETROS DE CONSULTA (?limit & ?offset) ---
+// --- LAB 11 - HU5: CARGAR MÁS CON PARÁMETROS DE CONSULTA ---
 
 let offset = 0;
 
