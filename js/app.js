@@ -90,11 +90,11 @@ function crearTarjeta(pokemon) {
   articulo.className =
     "bg-white rounded-xl shadow p-4 text-center border border-slate-100";
   articulo.innerHTML = `
-          <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
-          <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
-          <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
-          <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
-        `;
+            <img src="${img}" alt="${nombre}" class="w-24 h-24 mx-auto">
+            <h2 class="capitalize font-bold text-slate-800 mt-2">${nombre}</h2>
+            <p class="text-[10px] text-slate-400 capitalize mt-0.5">Principal: ${principal}</p>
+            <div class="flex gap-1 justify-center mt-2 flex-wrap">${badges}</div>
+          `;
 
   return articulo;
 }
@@ -108,20 +108,10 @@ function render(lista) {
   });
 }
 
-// 4. Obtener referencia al input (buscador desactivado temporalmente)
+// 4. Obtener referencia al input
 const buscador = document.getElementById("buscador");
 
-/*
-  buscador?.addEventListener("input", function () {
-    const texto = buscador.value.toLowerCase().trim();
-    const filtrados = pokemonAmpliado.filter((p) =>
-      p.nombre.toLowerCase().includes(texto)
-    );
-    render(filtrados);
-  });
-  */
-
-// --- HU4: REJILLA CON VARIOS POKÉMON EN PARALELO Y BUSCADOR ---
+// --- HU4 + LOGRO 1: REJILLA CON VARIOS POKÉMON EN PARALELO, BUSCADOR Y SPINNER ---
 
 // Variable global para guardar los Pokémon cargados
 let pokedex = [];
@@ -155,22 +145,25 @@ const nombres = [
   "gengar",
 ];
 
-// Estado de carga inicial
-contenedor.innerHTML = `<p class="col-span-full text-center text-slate-500">Cargando…</p>`;
+// 4. LOGRO 1: Estado de carga con Spinner Animado de Tailwind
+contenedor.innerHTML = `
+    <div class="col-span-full flex flex-col items-center justify-center py-12 gap-3">
+      <div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+      <p class="text-sm text-slate-500 font-medium">Cargando Pokédex…</p>
+    </div>
+  `;
 
+// 5. Crear el arreglo de promesas
 const promesas = nombres.map(function (nombre) {
   return fetch(`https://pokeapi.co/api/v2/pokemon/${nombre}`).then((r) =>
     r.json(),
   );
 });
 
-// Ejecutar todas las peticiones en paralelo
+// 6. Ejecutar todas las peticiones en paralelo
 Promise.all(promesas)
   .then(function (datos) {
-    // Traducimos los 6 objetos crudos usando nuestra función adaptadora
     pokedex = datos.map(adaptarPokemon);
-
-    // Renderizamos la Pokédex completa
     render(pokedex);
   })
   .catch(function (error) {
